@@ -125,13 +125,13 @@ struct SessionSimulationView: View {
                             .font(.system(size: 11)).foregroundStyle(Palette.muted).lineSpacing(4)
                         if let source = lab.snapshot.asrSource {
                             Label(source == .local ? "策略选择：本地识别" : "策略选择：云端识别", systemImage: source == .local ? "iphone" : "cloud")
-                                .font(.caption).foregroundStyle(Palette.green)
+                                .font(.caption).foregroundStyle(Palette.accentText)
                         }
                         if !lab.snapshot.transcript.isEmpty {
                             Text("示例提问：\(lab.snapshot.transcript)").font(.subheadline).foregroundStyle(Palette.ink)
                         }
                         if !lab.snapshot.response.isEmpty {
-                            Text("示例回答：\(lab.snapshot.response)").font(.subheadline).foregroundStyle(Palette.green)
+                            Text("示例回答：\(lab.snapshot.response)").font(.subheadline).foregroundStyle(Palette.accentText)
                         }
                         mainAction
                         if isActive {
@@ -144,7 +144,7 @@ struct SessionSimulationView: View {
                         if lab.canTestStale {
                             Button("注入上轮迟到回调") { lab.staleCallback() }.font(.caption).accessibilityIdentifier("lab-stale")
                         }
-                        if let result = lab.staleCallbackResult { Text(result).font(.caption).foregroundStyle(Palette.green) }
+                        if let result = lab.staleCallbackResult { Text(result).font(.caption).foregroundStyle(Palette.accentText) }
                     }
                     Card {
                         DisclosureGroup("意图轨迹（没有执行副作用）") {
@@ -159,13 +159,13 @@ struct SessionSimulationView: View {
                         }.font(.system(size: 13, weight: .medium))
                     }
                     Card {
-                        Text("工具批准保护").font(.system(size: 14, weight: .semibold)).foregroundStyle(Palette.green)
+                        Text("工具批准保护").font(.system(size: 14, weight: .semibold)).foregroundStyle(Palette.accentText)
                         FeatureRow(icon: "link", title: "请求绑定", subtitle: "未连接真实工具请求", status: "未执行")
                         FeatureRow(icon: "checkmark.shield", title: "有效期检查", subtitle: "未签发或消费授权", status: "未执行")
                         FeatureRow(icon: "square.on.square", title: "重复保护", subtitle: "只展示事件，不执行工具", status: "未执行")
                     }
                 }.padding(24)
-            }.background(Palette.background).navigationTitle("协议实验室").navigationBarTitleDisplayMode(.inline)
+            }.background(GlassBackdrop()).navigationTitle("协议实验室").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { dismiss() } } }
         }
     }
@@ -174,13 +174,13 @@ struct SessionSimulationView: View {
         HStack(spacing: 15) {
             VStack(spacing: 0) {
                 Image(systemName: complete ? "checkmark.circle.fill" : active ? "play.circle.fill" : "circle")
-                    .font(.system(size: 21)).foregroundStyle(active || complete ? Palette.green : Palette.muted.opacity(0.5))
+                    .font(.system(size: 21)).foregroundStyle(active || complete ? Palette.accentText : Palette.muted.opacity(0.5))
                     .frame(height: 27)
                 if !last { Rectangle().fill(Palette.line).frame(width: 1, height: 16) }
             }
             Text(title).font(.system(size: 14)).foregroundStyle(active || complete ? Palette.ink : Palette.muted)
             Spacer()
-            Text(complete ? "模拟完成" : active ? "当前步骤" : "等待中").font(.system(size: 11)).foregroundStyle(active || complete ? Palette.green : Palette.muted)
+            Text(complete ? "模拟完成" : active ? "当前步骤" : "等待中").font(.system(size: 11)).foregroundStyle(active || complete ? Palette.accentText : Palette.muted)
         }
     }
 
