@@ -12,22 +12,31 @@ struct ConversationView: View {
     @State private var confirmStart = false
     var body: some View {
         Screen(title: "语音会话", eyebrow: "云端断句 · 流式对话") {
-            HStack {
-                Label(runtime.phaseLabel, systemImage: runtime.enabled ? "waveform" : "moon")
-                    .font(.system(size: 16, weight: .semibold))
+            HStack(spacing: 12) {
+                Image(systemName: runtime.enabled ? "waveform" : "moon.fill")
+                    .font(.system(size: 16, weight: .semibold)).foregroundStyle(Palette.accent)
+                    .frame(width: 34, height: 34).background(Palette.accent.opacity(0.13), in: Circle())
+                Text(runtime.phaseLabel).font(.system(size: 16, weight: .semibold))
                 Spacer(); Badge(text: runtime.supportsDevice ? (runtime.ready ? "已认证" : "未连接") : "模拟器预览")
-            }.foregroundStyle(Palette.ink).padding(16).background(Palette.mint.opacity(0.2), in: RoundedRectangle(cornerRadius: 17))
+            }.foregroundStyle(Palette.ink).padding(.horizontal, 14).padding(.vertical, 12)
+                .liquidGlass(in: Capsule())
             VStack(alignment: .leading, spacing: 18) {
                 Label("你说的话", systemImage: "mic").font(.caption).foregroundStyle(Palette.mint.opacity(0.7))
                 Text(runtime.transcript.isEmpty ? "唤醒后，识别文字会显示在这里" : runtime.transcript)
                     .font(.system(size: 18)).foregroundStyle(.white).privacySensitive()
-                Divider().overlay(Palette.mint.opacity(0.3))
+                Rectangle().fill(Color.white.opacity(0.14)).frame(height: 0.5)
                 Label("DeepSeek Flash", systemImage: "sparkles").font(.caption).foregroundStyle(Palette.mint.opacity(0.7))
                 Text(runtime.answer.isEmpty ? "回答逐字显示，开口可以打断" : runtime.answer)
                     .font(.system(size: 16)).foregroundStyle(Palette.mint).lineSpacing(6).privacySensitive()
                 if runtime.modelComplete { Text("模型输出已完成 · 不等于镜片渲染完成").font(.caption2).foregroundStyle(Palette.mint.opacity(0.6)) }
             }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
-                .background(Palette.inkFill, in: RoundedRectangle(cornerRadius: 22))
+                .background(Palette.heroGradient, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .stroke(LinearGradient(colors: [.white.opacity(0.32), .white.opacity(0.04), .white.opacity(0.10)],
+                                               startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1)
+                }
+                .shadow(color: .black.opacity(0.16), radius: 22, y: 10)
                 .accessibilityIdentifier("live-voice-content")
             if !runtime.enabled {
                 Text("麦克风未启用 · 没有音频正在传输").font(.caption).foregroundStyle(Palette.muted)
@@ -35,17 +44,24 @@ struct ConversationView: View {
                 Text(runtime.phase == "idle" || runtime.phase == "waitingForConnection" ? "服务待命，不是全天录音；等眼镜主动唤醒。" : "本轮音频处理中；关闭待命可停止本轮与后续自动响应。")
                     .font(.caption).foregroundStyle(Palette.muted)
             }
-            HStack {
-                Button("模型设置") { if runtime.supportsDevice { showKeys = true } else { showConfiguration = true } }.accessibilityIdentifier("model-settings")
-                Spacer()
-                Button("本地流程演示") { showSimulation = true }.accessibilityIdentifier("open-session-lab")
-            }.font(.subheadline)
-            NavigationLink { CodexCompanionView() } label: {
-                Label("Codex 任务与审批", systemImage: "terminal")
-            }.accessibilityIdentifier("codex-conversation-entry")
-            NavigationLink { ModelToolsView() } label: {
-                Label("AI Tools · 查看模型可用工具", systemImage: "wrench.and.screwdriver")
-            }.accessibilityIdentifier("model-tools-conversation-entry")
+            HStack(spacing: 10) {
+                Button { if runtime.supportsDevice { showKeys = true } else { showConfiguration = true } } label: {
+                    Label("模型设置", systemImage: "slider.horizontal.3").font(.system(size: 14, weight: .semibold)).frame(maxWidth: .infinity).padding(.vertical, 4)
+                }.secondaryGlassButton().accessibilityIdentifier("model-settings")
+                Button { showSimulation = true } label: {
+                    Label("本地流程演示", systemImage: "play.fill").font(.system(size: 14, weight: .semibold)).frame(maxWidth: .infinity).padding(.vertical, 4)
+                }.secondaryGlassButton().accessibilityIdentifier("open-session-lab")
+            }
+            VStack(spacing: 0) {
+                NavigationLink { CodexCompanionView() } label: {
+                    linkRow("Codex 任务与审批", icon: "terminal")
+                }.buttonStyle(.plain).accessibilityIdentifier("codex-conversation-entry")
+                Divider().padding(.leading, 58)
+                NavigationLink { ModelToolsView() } label: {
+                    linkRow("AI Tools · 查看模型可用工具", icon: "wrench.and.screwdriver")
+                }.buttonStyle(.plain).accessibilityIdentifier("model-tools-conversation-entry")
+            }
+            .liquidGlass(in: RoundedRectangle(cornerRadius: 22, style: .continuous))
             if let error = timeline.storageError {
                 Label(error, systemImage: "exclamationmark.triangle").font(.caption).foregroundStyle(Palette.amber)
             }
@@ -70,15 +86,18 @@ struct ConversationView: View {
                     Text(useCloud ? "唤醒后的音频送往已指定阿里云 ASR，识别文字送往 DeepSeek；可能计费。" : "仅本机 WebRTC VAD 检测；回复每轮随机测试串，不识别、不上传。")
                         .font(.caption).foregroundStyle(Palette.muted)
                     Button(runtime.hasCredentials ? "管理语音服务密钥" : "配置 ASR 和模型密钥") { showKeys = true }
+                        .font(.system(size: 15, weight: .semibold)).foregroundStyle(Palette.accentText)
                         .disabled(runtime.enabled)
                 }
                 if runtime.enabled {
                     PrimaryButton(title: "关闭待命", icon: "stop.circle") { runtime.stop() }
-                    Button("结束本轮，保留待命") { runtime.endRound() }
+                    Button { runtime.endRound() } label: { Text("结束本轮，保留待命").font(.system(size: 15, weight: .semibold)).frame(maxWidth: .infinity).padding(.vertical, 4) }
+                        .secondaryGlassButton()
                 } else {
                     PrimaryButton(title: "开启眼镜语音待命", icon: "waveform", enabled: runtime.ready && (!useCloud || runtime.hasCredentials)) { confirmStart = true }
                 }
-                Button("连接与解绑管理") { showDiagnostics = true }
+                Button { showDiagnostics = true } label: { Label("连接与解绑管理", systemImage: "link").font(.system(size: 14, weight: .semibold)) }
+                    .secondaryGlassButton()
                 Text(runtime.latestEvent).font(.system(size: 10, design: .monospaced)).foregroundStyle(Palette.muted)
             } else {
                 Text("此构建不加载眼镜通信库，也不会调用云服务。真机请使用 RayNeoCompanionDevice 构建；下面的演示不代表实际收音。")
@@ -86,7 +105,7 @@ struct ConversationView: View {
             }
             Text("回答全部分片及完成消息提交后，10 秒无有效新句自动退出；继续说话会取消旧计时。不是从第一个字计时，提交完成也不等于镜片渲染完成。")
                 .font(.caption).foregroundStyle(Palette.amber)
-            Button("清除本次屏幕文字") { runtime.clearText() }.font(.caption)
+            Button("清除本次屏幕文字") { runtime.clearText() }.font(.footnote.weight(.medium)).foregroundStyle(Palette.accentText)
         }
         .onAppear { runtime.prepare(); reflectRunningPolicy() }
         .onChange(of: runtime.enabled) { _ in reflectRunningPolicy() }
@@ -106,6 +125,15 @@ struct ConversationView: View {
         .alert("语音服务", isPresented: Binding(get: { runtime.error != nil }, set: { if !$0 { runtime.error = nil } })) {
             Button("知道了", role: .cancel) {}
         } message: { Text(runtime.error ?? "") }
+    }
+    private func linkRow(_ title: String, icon: String) -> some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon).font(.system(size: 16, weight: .semibold)).foregroundStyle(Palette.accent)
+                .frame(width: 32, height: 32).background(Palette.accent.opacity(0.13), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+            Text(title).font(.system(size: 16, weight: .medium)).foregroundStyle(Palette.ink)
+            Spacer()
+            Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(Palette.muted)
+        }.padding(.horizontal, 14).padding(.vertical, 12).contentShape(Rectangle())
     }
     private func reflectRunningPolicy() {
         guard runtime.enabled else { return }

@@ -26,15 +26,15 @@ struct ConversationTimelineView: View {
                 ForEach(timeline.turns.reversed()) { turn in
                     Card {
                         HStack { Text(turn.startedAt.formatted(date: .abbreviated, time: .standard)).font(.caption); Spacer(); Badge(text: turn.outcome) }
-                        Label("我", systemImage: "person").font(.caption.bold()).foregroundStyle(Palette.green)
+                        Label("我", systemImage: "person.fill").font(.caption.bold()).foregroundStyle(Palette.accentText)
                         Text(turn.question.isEmpty ? "未收到有效识别文字" : turn.question).font(.subheadline).textSelection(.enabled)
                         Divider().overlay(Palette.line)
-                        Label("AI", systemImage: "sparkles").font(.caption.bold()).foregroundStyle(Palette.green)
+                        Label("AI", systemImage: "sparkles").font(.caption.bold()).foregroundStyle(Palette.accentText)
                         Text(turn.answer.isEmpty ? "没有生成回答" : turn.answer).font(.subheadline).textSelection(.enabled)
                     }.privacySensitive()
                 }
             }.padding(24)
-        }.background(Palette.background).navigationTitle("对话时间轴").navigationBarTitleDisplayMode(.inline)
+        }.background(GlassBackdrop()).navigationTitle("对话时间轴").navigationBarTitleDisplayMode(.inline)
             .toolbar(.visible, for: .navigationBar).preference(key: CompanionTabBarHiddenPreference.self, value: true)
             .alert("导出", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) { Button("知道了") {} } message: { Text(error ?? "") }
     }

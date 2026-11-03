@@ -11,7 +11,7 @@ struct LegacyConversationView: View {
             HStack {
                 Label("等待连接", systemImage: "clock").font(.system(size: 16, weight: .semibold))
                 Spacer(); Badge(text: "尚未采音", active: true)
-            }.foregroundStyle(Palette.ink).padding(16).background(Palette.mint.opacity(0.18), in: RoundedRectangle(cornerRadius: 17))
+            }.foregroundStyle(Palette.ink).padding(16).liquidGlass(in: RoundedRectangle(cornerRadius: 20, style: .continuous))
 
             VStack(spacing: 13) {
                 Text("你的声音，连接你的模型").font(.system(size: 18, weight: .medium)).foregroundStyle(.white)
@@ -47,7 +47,7 @@ struct LegacyConversationView: View {
             Button { showSimulation = true } label: {
                 Label("本地流程演示", systemImage: "play")
                     .font(.system(size: 15, weight: .semibold)).foregroundStyle(Palette.ink).frame(maxWidth: .infinity).padding(16)
-                    .background(Palette.card, in: RoundedRectangle(cornerRadius: 14)).overlay(RoundedRectangle(cornerRadius: 14).stroke(Palette.green, lineWidth: 1))
+                    .liquidGlass(in: RoundedRectangle(cornerRadius: 18, style: .continuous), interactive: true)
             }.accessibilityIdentifier("open-session-lab")
         }
         .sheet(isPresented: $showConfiguration) { ModelConfigurationView() }
@@ -70,18 +70,18 @@ struct ModelConfigurationView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     Label("仅保存配置，不连接服务", systemImage: "info.circle")
-                        .font(.system(size: 12)).foregroundStyle(Palette.green).padding(15)
-                        .frame(maxWidth: .infinity, alignment: .leading).background(Palette.mint.opacity(0.18), in: RoundedRectangle(cornerRadius: 14))
+                        .font(.system(size: 13, weight: .medium)).foregroundStyle(Palette.accentText).padding(15)
+                        .frame(maxWidth: .infinity, alignment: .leading).accentNote()
                     Card {
                         Text("服务地址").font(.system(size: 14, weight: .medium)).foregroundStyle(Palette.ink)
                         TextField("HTTPS 基础地址（可留空）", text: $draft.endpoint).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
-                            .padding(13).background(Palette.background, in: RoundedRectangle(cornerRadius: 10)).accessibilityIdentifier("model-endpoint")
+                            .padding(13).background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 12, style: .continuous)).accessibilityIdentifier("model-endpoint")
                         Text("模型名称").font(.system(size: 14, weight: .medium)).foregroundStyle(Palette.ink)
                         TextField("输入模型名称", text: $draft.model).textInputAutocapitalization(.never).autocorrectionDisabled()
-                            .padding(13).background(Palette.background, in: RoundedRectangle(cornerRadius: 10)).accessibilityIdentifier("model-name")
+                            .padding(13).background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 12, style: .continuous)).accessibilityIdentifier("model-name")
                         Text("API 密钥").font(.system(size: 14, weight: .medium)).foregroundStyle(Palette.ink)
                         SecureField(hasKey ? "新密钥（留空保留此地址的密钥）" : "安全存入钥匙串（可留空）", text: $key).textInputAutocapitalization(.never).autocorrectionDisabled()
-                            .padding(13).background(Palette.background, in: RoundedRectangle(cornerRadius: 10)).privacySensitive()
+                            .padding(13).background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 12, style: .continuous)).privacySensitive()
                         Text(hasKey ? "此服务地址已保存密钥，不会显示原值。" : "密钥按完整服务地址独立保存，不跨地址沿用。")
                             .font(.system(size: 11)).foregroundStyle(Palette.muted).lineSpacing(4)
                     }
@@ -114,7 +114,7 @@ struct ModelConfigurationView: View {
                         .font(.system(size: 11)).foregroundStyle(Palette.muted).lineSpacing(4)
                     if hasKey { Button("移除此服务在本机保存的密钥", role: .destructive) { confirmRemoval = true }.font(.footnote) }
                 }.padding(24)
-            }.background(Palette.background).scrollDismissesKeyboard(.interactively)
+            }.background(GlassBackdrop()).scrollDismissesKeyboard(.interactively)
             .navigationTitle("模型设置").navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } }
