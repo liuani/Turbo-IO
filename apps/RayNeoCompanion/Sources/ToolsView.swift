@@ -153,7 +153,9 @@ struct TodoView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 notice("先保存到本机 · 眼镜同步需确认")
-                NavigationLink("从系统提醒事项导入") { ReminderImportView() }
+                NavigationLink { ReminderImportView() } label: {
+                    Label("从系统提醒事项导入", systemImage: "list.bullet.rectangle").font(.system(size: 14, weight: .semibold))
+                }.secondaryGlassButton()
                     .accessibilityIdentifier("system-reminders-open")
                 Picker("待办筛选", selection: $showCompleted) {
                     Text("进行中").tag(false); Text("已完成").tag(true)
@@ -164,10 +166,10 @@ struct TodoView: View {
                         store.addTodo(title); title = ""
                         inputFocused = false
                         showCompleted = false
-                    } label: { Image(systemName: "plus").font(.system(size: 17, weight: .medium)).foregroundStyle(.white).frame(width: 36, height: 36).background(Palette.inkFill, in: Circle()) }
+                    } label: { Image(systemName: "plus").font(.system(size: 17, weight: .bold)).foregroundStyle(.white).frame(width: 38, height: 38).background(Palette.accent, in: Circle()) }
                         .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty).accessibilityLabel("保存到本机")
-                }.padding(13).background(Palette.card, in: RoundedRectangle(cornerRadius: 14))
-                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Palette.line, lineWidth: 0.75))
+                }.padding(.leading, 18).padding(.trailing, 8).padding(.vertical, 8)
+                    .liquidGlass(in: RoundedRectangle(cornerRadius: 26, style: .continuous))
                 if visibleTodos.isEmpty {
                     Card { EmptyState(icon: "checkmark.circle", title: showCompleted ? "还没有已完成待办" : "还没有进行中的待办", detail: "从一件可以完成的小事开始。\n这里不会显示或修改官方 App 的待办。") }
                 } else {
@@ -175,10 +177,10 @@ struct TodoView: View {
                         Button { store.toggleTodo(todo.id) } label: {
                             Card {
                                 HStack(alignment: .top, spacing: 13) {
-                                    Image(systemName: todo.completed ? "checkmark.circle.fill" : "circle").font(.system(size: 23)).foregroundStyle(Palette.green)
+                                    Image(systemName: todo.completed ? "checkmark.circle.fill" : "circle").font(.system(size: 24)).foregroundStyle(todo.completed ? Palette.accent : Palette.muted)
                                     VStack(alignment: .leading, spacing: 6) {
-                                        Text(todo.title).font(.system(size: 15)).strikethrough(todo.completed).foregroundStyle(todo.completed ? Palette.muted : Palette.ink)
-                                        Text(todo.deliveryDescription).font(.system(size: 10)).foregroundStyle(Palette.muted)
+                                        Text(todo.title).font(.system(size: 16, weight: .medium)).strikethrough(todo.completed).foregroundStyle(todo.completed ? Palette.muted : Palette.ink)
+                                        Text(todo.deliveryDescription).font(.system(size: 12)).foregroundStyle(Palette.muted)
                                         if let day = SystemReminderSnapshot.dateOnlyLabel(todo.reminderDueComponents) {
                                             Text("计划：" + day).font(.caption2).foregroundStyle(Palette.muted)
                                         } else if let due = todo.dueAt { Text("计划：" + due.formatted(date: .abbreviated, time: .shortened)).font(.caption2).foregroundStyle(Palette.muted) }
@@ -195,24 +197,29 @@ struct TodoView: View {
                     }
                 }
                 HStack(spacing: 16) {
-                    Image(systemName: "doc.text.magnifyingglass").font(.system(size: 32, weight: .light)).foregroundStyle(Palette.green)
+                    Image(systemName: "eyeglasses").font(.system(size: 22, weight: .semibold)).foregroundStyle(Palette.accent)
+                        .frame(width: 48, height: 48).background(Palette.accent.opacity(0.13), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     VStack(alignment: .leading, spacing: 7) {
                         GlassesTodoSyncCard()
                     }
-                }.padding(20).frame(maxWidth: .infinity, alignment: .leading).background(Palette.mint.opacity(0.18), in: RoundedRectangle(cornerRadius: 18))
+                }.padding(20).frame(maxWidth: .infinity, alignment: .leading)
+                    .liquidGlass(in: RoundedRectangle(cornerRadius: 24, style: .continuous))
                 ShareLink(item: markdown) {
                     Label("导出待办清单（本机）", systemImage: "arrow.down.to.line")
-                        .font(.system(size: 15, weight: .semibold)).foregroundStyle(.white).frame(maxWidth: .infinity).padding(17)
-                        .background(Palette.inkFill, in: RoundedRectangle(cornerRadius: 14))
+                        .font(.system(size: 16, weight: .semibold)).foregroundStyle(.white).frame(maxWidth: .infinity).padding(17)
+                        .background(Palette.accent, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        .opacity(store.todos.isEmpty ? 0.45 : 1)
                 }.disabled(store.todos.isEmpty)
                 Text("仅分享本机 Markdown 文本，不会推送到眼镜。")
                     .font(.system(size: 11)).foregroundStyle(Palette.muted).frame(maxWidth: .infinity)
-                NavigationLink("已移除的待办（可恢复）") { RemovedTodosView() }
-                NavigationLink("待发送与冲突") { TodoDeliveryView() }
-                    .accessibilityIdentifier("todo-delivery-open")
+                HStack(spacing: 8) {
+                    NavigationLink { RemovedTodosView() } label: { Text("已移除的待办（可恢复）").frame(maxWidth: .infinity) }.secondaryGlassButton()
+                    NavigationLink { TodoDeliveryView() } label: { Text("待发送与冲突").frame(maxWidth: .infinity) }.secondaryGlassButton()
+                        .accessibilityIdentifier("todo-delivery-open")
+                }.font(.system(size: 13, weight: .semibold))
                 Text("长按条目可编辑或移除；计划时间仅记录，不自动创建系统提醒。").font(.caption).foregroundStyle(Palette.muted)
             }.padding(24)
-        }.background(Palette.background).navigationTitle("待办清单").navigationBarTitleDisplayMode(.inline).toolbar(.visible, for: .navigationBar)
+        }.background(GlassBackdrop()).navigationTitle("待办清单").navigationBarTitleDisplayMode(.inline).toolbar(.visible, for: .navigationBar)
             .preference(key: CompanionTabBarHiddenPreference.self, value: true)
             .sheet(item: $editingTodo) { TodoEditorView(todo: $0) }
     }
