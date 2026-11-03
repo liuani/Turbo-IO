@@ -45,15 +45,13 @@ struct ToolsView: View {
                 }
             }
             Label("设备效果以实机验收为准", systemImage: "info.circle")
-                .font(.system(size: 12)).foregroundStyle(Palette.green).padding(15)
-                .frame(maxWidth: .infinity, alignment: .leading).background(Palette.mint.opacity(0.18), in: RoundedRectangle(cornerRadius: 15))
-            HStack {
-                NavigationLink("使用说明") { HelpView() }
-                Spacer()
-                NavigationLink("能力范围") { ProtocolLabView() }
-                Spacer()
-                NavigationLink("偏好设置") { SettingsView(embedded: true) }
-            }.font(.system(size: 12)).padding(.horizontal, 5)
+                .font(.system(size: 13, weight: .medium)).foregroundStyle(Palette.accentText).padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading).accentNote(cornerRadius: 18)
+            HStack(spacing: 8) {
+                NavigationLink { HelpView() } label: { Text("使用说明").frame(maxWidth: .infinity) }.secondaryGlassButton()
+                NavigationLink { ProtocolLabView() } label: { Text("能力范围").frame(maxWidth: .infinity) }.secondaryGlassButton()
+                NavigationLink { SettingsView(embedded: true) } label: { Text("偏好设置").frame(maxWidth: .infinity) }.secondaryGlassButton()
+            }.font(.system(size: 13, weight: .semibold))
         }
         .sheet(isPresented: $showModel) { ModelConfigurationView() }
         .sheet(isPresented: $showLab) { SessionSimulationView() }
@@ -112,7 +110,7 @@ struct ModelToolsView: View {
                         Text(tool.description).font(.subheadline)
                         Text(tool.requiresText ? "参数：text（必填字符串，任务要求）" : "参数：无，使用当前所选任务")
                             .font(.caption).foregroundStyle(Palette.muted)
-                        Text("你可以说：“\(tool.example)”").font(.caption).foregroundStyle(Palette.green)
+                        Text("你可以说：“\(tool.example)”").font(.caption).foregroundStyle(Palette.accentText)
                         Button {
                             if expandedTools.contains(tool.id) { expandedTools.remove(tool.id) }
                             else { expandedTools.insert(tool.id) }
@@ -134,7 +132,7 @@ struct ModelToolsView: View {
                 Text("当前使用 Function Calling，并非 MCP。待办、天气、录音等 App 功能尚未注册为模型工具；权限审批仍须在手机明确确认，没有自动批准工具。")
                     .font(.caption).foregroundStyle(Palette.muted).accessibilityIdentifier("model-tools-boundary")
             }.padding(22)
-        }.background(Palette.background).navigationTitle("AI Tools").navigationBarTitleDisplayMode(.inline)
+        }.background(GlassBackdrop()).navigationTitle("AI Tools").navigationBarTitleDisplayMode(.inline)
             .toolbar(.visible, for: .navigationBar).preference(key: CompanionTabBarHiddenPreference.self, value: true)
     }
 }
@@ -330,8 +328,8 @@ enum LocalPrompterPager {
 
 private func notice(_ text: String) -> some View {
     Label { Text(text).lineSpacing(4) } icon: { Image(systemName: "info.circle") }
-        .font(.system(size: 12)).foregroundStyle(Palette.green).padding(14)
-        .frame(maxWidth: .infinity, alignment: .leading).background(Palette.mint.opacity(0.3), in: RoundedRectangle(cornerRadius: 14))
+        .font(.system(size: 13, weight: .medium)).foregroundStyle(Palette.accentText).padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading).accentNote()
 }
 
 struct ProtocolLabView: View {
@@ -350,12 +348,12 @@ struct ProtocolLabView: View {
                 ForEach(capabilities, id: \.0) { item in
                     Card {
                         HStack { Text(item.0).font(.headline).foregroundStyle(Palette.ink); Spacer(); Badge(text: "待接入 / 验收") }
-                        Text(item.1).font(.system(size: 11, weight: .medium, design: .monospaced)).foregroundStyle(Palette.green)
+                        Text(item.1).font(.system(size: 11, weight: .medium, design: .monospaced)).foregroundStyle(Palette.accentText)
                         Text(item.2).font(.system(size: 13)).foregroundStyle(Palette.muted).lineSpacing(5)
                     }
                 }
             }.padding(24)
-        }.background(Palette.background).navigationTitle("协议实验室").navigationBarTitleDisplayMode(.inline).toolbar(.visible, for: .navigationBar)
+        }.background(GlassBackdrop()).navigationTitle("协议实验室").navigationBarTitleDisplayMode(.inline).toolbar(.visible, for: .navigationBar)
             .preference(key: CompanionTabBarHiddenPreference.self, value: true)
     }
 }
@@ -414,7 +412,7 @@ struct HelpView: View {
                     }
                 }
             }.padding(24)
-        }.background(Palette.background).navigationTitle("使用说明").navigationBarTitleDisplayMode(.inline).toolbar(.visible, for: .navigationBar)
+        }.background(GlassBackdrop()).navigationTitle("使用说明").navigationBarTitleDisplayMode(.inline).toolbar(.visible, for: .navigationBar)
             .preference(key: CompanionTabBarHiddenPreference.self, value: true)
     }
 }
