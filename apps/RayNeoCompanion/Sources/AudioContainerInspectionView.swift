@@ -18,7 +18,7 @@ struct AudioContainerInspectionView: View {
                     Text("容器通过，不等于声音可用。").font(.title3.weight(.semibold)).foregroundStyle(.white)
                     Text("只检查一个 Ogg / Opus 声明子集，不播放、不解码、不运行语音识别。")
                         .font(.caption).foregroundStyle(Palette.mint.opacity(0.8)).fixedSize(horizontal: false, vertical: true)
-                }.padding(20).frame(maxWidth: .infinity, alignment: .leading).background(Palette.inkFill, in: RoundedRectangle(cornerRadius: 20))
+                }.padding(20).frame(maxWidth: .infinity, alignment: .leading).background(Palette.heroGradient, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
                 if let recording {
                     Card {
                         Text(recording.title).font(.subheadline.weight(.medium)).foregroundStyle(Palette.ink)
@@ -46,7 +46,7 @@ struct AudioContainerInspectionView: View {
                     Text("离开此页会取消并清除结果；重新进入不自动检查。文件变化或归档异常使旧结果失效。取消后须等资源释放才能重新开始。")
                 }.font(.caption).foregroundStyle(Palette.muted)
             }.padding(24)
-        }.background(Palette.background).navigationTitle("音频容器检查").navigationBarTitleDisplayMode(.inline)
+        }.background(GlassBackdrop()).navigationTitle("音频容器检查").navigationBarTitleDisplayMode(.inline)
             .toolbar(.visible, for: .navigationBar).preference(key: CompanionTabBarHiddenPreference.self, value: true)
             .toolbarBackground(Palette.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)

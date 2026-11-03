@@ -9,23 +9,40 @@ struct ArchiveView: View {
     @State private var showImporter = false
     @State private var showWorkflow = false
     @State private var filter = "全部"
+    @Namespace private var filterSelection
     private var visibleRecordings: [ArchivedRecording] {
         archive.recordings.filter { filter == "全部" || (filter == "待文字" ? $0.transcripts.isEmpty : !$0.transcripts.isEmpty) }
     }
     var body: some View {
         Screen(title: "录音归档", eyebrow: "本地录音管理", headerIcon: "square.and.arrow.up", headerAction: { showWorkflow = true }) {
             GlassesRecordingCard()
-            NavigationLink("ZIP 导出副本与可恢复暂存箱") { PortableExportCopiesView() }
+            NavigationLink { PortableExportCopiesView() } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "archivebox").font(.system(size: 15, weight: .semibold)).foregroundStyle(Palette.accent)
+                        .frame(width: 32, height: 32).background(Palette.accent.opacity(0.13), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                    Text("ZIP 导出副本与可恢复暂存箱").font(.system(size: 15, weight: .medium)).foregroundStyle(Palette.ink)
+                    Spacer()
+                    Image(systemName: "chevron.right").font(.system(size: 13, weight: .semibold)).foregroundStyle(Palette.muted)
+                }.padding(.horizontal, 14).padding(.vertical, 12)
+                    .liquidGlass(in: RoundedRectangle(cornerRadius: 20, style: .continuous), interactive: true)
+            }.buttonStyle(.plain)
                 .accessibilityIdentifier("export-copies-open")
             HStack(spacing: 0) {
                 ForEach(["全部", "待文字", "有笔记"], id: \.self) { value in
                     Button { filter = value } label: {
-                        Text(value).font(.system(size: 13, weight: .medium)).frame(maxWidth: .infinity).padding(.vertical, 11)
-                            .foregroundStyle(filter == value ? .white : Palette.ink)
-                            .background(filter == value ? Palette.inkFill : .clear, in: Capsule())
-                    }
+                        Text(value).font(.system(size: 14, weight: filter == value ? .semibold : .medium)).frame(maxWidth: .infinity).padding(.vertical, 10)
+                            .foregroundStyle(filter == value ? Palette.accentText : Palette.ink)
+                            .background {
+                                if filter == value {
+                                    Capsule().fill(Palette.ink.opacity(0.09))
+                                        .matchedGeometryEffect(id: "archive-filter", in: filterSelection)
+                                }
+                            }
+                            .contentShape(Capsule())
+                    }.buttonStyle(.plain)
                 }
-            }.padding(3).background(Palette.line.opacity(0.35), in: Capsule())
+            }.padding(4).liquidGlass(in: Capsule())
+                .animation(.spring(response: 0.35, dampingFraction: 0.8), value: filter)
             ArchiveFeedbackView()
             if archive.recordings.isEmpty {
                 Card {
@@ -42,11 +59,11 @@ struct ArchiveView: View {
                     NavigationLink { ArchiveDetailView(original: recording) } label: {
                         Card {
                             HStack(alignment: .top, spacing: 13) {
-                                Image(systemName: "waveform").foregroundStyle(Palette.green).frame(width: 38, height: 44).background(Palette.background, in: RoundedRectangle(cornerRadius: 12))
+                                Image(systemName: "waveform").font(.system(size: 17, weight: .semibold)).foregroundStyle(Palette.accent).frame(width: 42, height: 42).background(Palette.accent.opacity(0.13), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                                 VStack(alignment: .leading, spacing: 7) {
                                     Text(recording.title).font(.system(size: 15, weight: .medium)).foregroundStyle(Palette.ink).lineLimit(2)
                                     Text("\(recording.importedAt.formatted(date: .abbreviated, time: .shortened)) 导入 · \(ByteCountFormatter.string(fromByteCount: recording.byteCount, countStyle: .file))")
-                                        .font(.system(size: 10)).foregroundStyle(Palette.muted)
+                                        .font(.system(size: 12)).foregroundStyle(Palette.muted)
                                     Badge(text: archive.verificationIssues[recording.id] != nil ? "校验异常 · 需复核" : (recording.transcripts.isEmpty ? "曾校验副本 · 待提供文字" : "\(recording.transcripts.count) 版本地 Markdown"), active: archive.verificationIssues[recording.id] == nil)
                                     if archive.verificationIssues[recording.id] != nil {
                                         Label("归档校验异常，查看详情", systemImage: "exclamationmark.triangle")
@@ -90,10 +107,12 @@ struct ArchiveView: View {
                         Text("NAS / Obsidian").font(.system(size: 20, weight: .semibold)).foregroundStyle(Palette.ink)
                         Label("本地 Markdown 可分享 · 上传待接入", systemImage: "clock").font(.system(size: 11)).foregroundStyle(Palette.muted).padding(.top, 5)
                     }
-                    Spacer(); Image(systemName: "server.rack").font(.system(size: 30, weight: .light)).foregroundStyle(Palette.green)
-                }.padding(20).frame(maxWidth: .infinity, alignment: .leading).background(Palette.mint.opacity(0.18), in: RoundedRectangle(cornerRadius: 20))
+                    Spacer(); Image(systemName: "server.rack").font(.system(size: 26, weight: .medium)).foregroundStyle(Palette.accent)
+                        .frame(width: 56, height: 56).background(Palette.accent.opacity(0.13), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                }.padding(20).frame(maxWidth: .infinity, alignment: .leading)
+                    .liquidGlass(in: RoundedRectangle(cornerRadius: 24, style: .continuous), interactive: true)
             }.buttonStyle(.plain)
-            Button("刷新与恢复本地归档") { Task { await archive.load() } }.font(.caption).disabled(archive.isBusy)
+            Button("刷新与恢复本地归档") { Task { await archive.load() } }.font(.footnote.weight(.medium)).foregroundStyle(Palette.accentText).disabled(archive.isBusy)
             Text("手动导入 · 不自动转写 · 不自动上传").font(.system(size: 11)).foregroundStyle(Palette.muted).frame(maxWidth: .infinity)
         }
         .task { await archive.load() }
@@ -127,10 +146,12 @@ struct ArchiveDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 19) {
                 VStack(alignment: .leading, spacing: 10) {
-                    Label("本机校验归档", systemImage: "checkmark.shield").font(.caption).foregroundStyle(Palette.mint)
+                    Label("本机校验归档", systemImage: "checkmark.shield.fill").font(.caption.weight(.semibold)).foregroundStyle(Palette.mint)
                     Text(recording.title).font(.title3.weight(.semibold)).foregroundStyle(.white)
-                    Text("没有执行音频解码、识别或远端上传").font(.system(size: 11)).foregroundStyle(Palette.mint.opacity(0.8))
-                }.padding(20).frame(maxWidth: .infinity, alignment: .leading).background(Palette.inkFill, in: RoundedRectangle(cornerRadius: 20))
+                    Text("没有执行音频解码、识别或远端上传").font(.system(size: 12)).foregroundStyle(Color.white.opacity(0.7))
+                }.padding(22).frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Palette.heroGradient, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).stroke(Color.white.opacity(0.14), lineWidth: 1))
                 Picker("归档详情", selection: $mode) {
                     Text("归档证据").tag("归档证据"); Text("文字与修订").tag("文字与修订")
                 }.pickerStyle(.segmented)
@@ -147,7 +168,7 @@ struct ArchiveDetailView: View {
                 }
                 if mode == "归档证据" { evidenceContent } else { transcriptContent }
             }.padding(24)
-        }.background(Palette.background).scrollDismissesKeyboard(.interactively)
+        }.background(GlassBackdrop()).scrollDismissesKeyboard(.interactively)
             .navigationTitle("录音详情").navigationBarTitleDisplayMode(.inline).toolbar(.visible, for: .navigationBar)
             .preference(key: CompanionTabBarHiddenPreference.self, value: true)
             .onAppear { if title.isEmpty { title = recording.title } }
@@ -209,10 +230,10 @@ struct ArchiveDetailView: View {
             Card {
                 Text("笔记标题").font(.subheadline.weight(.medium)).foregroundStyle(Palette.ink)
                 TextField("单行标题，最多 256 UTF-8 字节", text: $title).textInputAutocapitalization(.never)
-                    .padding(12).background(Palette.background, in: RoundedRectangle(cornerRadius: 10)).accessibilityIdentifier("archive-note-title").focused($editing)
+                    .padding(12).background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 12, style: .continuous)).accessibilityIdentifier("archive-note-title").focused($editing)
                 Text("你提供的文字").font(.subheadline.weight(.medium)).foregroundStyle(Palette.ink)
                 TextEditor(text: $transcript).frame(minHeight: 170).scrollContentBackground(.hidden)
-                    .padding(8).background(Palette.background, in: RoundedRectangle(cornerRadius: 12)).focused($editing).accessibilityIdentifier("archive-transcript")
+                    .padding(8).background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 12, style: .continuous)).focused($editing).accessibilityIdentifier("archive-transcript")
                 Text("当前 \(transcript.utf8.count) 字节 / 1 MiB。未保存文字离开此页会丢失。")
                     .font(.caption2).foregroundStyle(Palette.muted)
             }
@@ -266,8 +287,8 @@ struct ArchiveFeedbackView: View {
             }.foregroundStyle(Palette.amber).padding(15).frame(maxWidth: .infinity, alignment: .leading)
                 .background(Palette.warningFill, in: RoundedRectangle(cornerRadius: 14)).accessibilityIdentifier("archive-error")
         } else if let message = archive.statusMessage {
-            Text(message).font(.caption).foregroundStyle(Palette.green).padding(13).frame(maxWidth: .infinity, alignment: .leading)
-                .background(Palette.mint.opacity(0.18), in: RoundedRectangle(cornerRadius: 14)).accessibilityIdentifier("archive-status")
+            Text(message).font(.footnote.weight(.medium)).foregroundStyle(Palette.accentText).padding(14).frame(maxWidth: .infinity, alignment: .leading)
+                .accentNote().accessibilityIdentifier("archive-status")
         }
     }
 }
@@ -293,7 +314,7 @@ struct LegacyRecordingsView: View {
                     }
                 }
             }.padding(24)
-        }.background(Palette.background).navigationTitle("旧版导入副本").navigationBarTitleDisplayMode(.inline).toolbar(.visible, for: .navigationBar)
+        }.background(GlassBackdrop()).navigationTitle("旧版导入副本").navigationBarTitleDisplayMode(.inline).toolbar(.visible, for: .navigationBar)
             .preference(key: CompanionTabBarHiddenPreference.self, value: true)
             .confirmationDialog("仅复制这一条到新校验归档；不删除或移动旧副本。", isPresented: Binding(get: { selected != nil }, set: { if !$0 { selected = nil } })) {
                 Button("确认复制，保留旧副本") {
@@ -331,13 +352,13 @@ struct ArchiveShareView: View {
                     .font(.caption).foregroundStyle(Palette.amber)
                 Button { open(.share) } label: {
                     Label("打开系统分享", systemImage: "square.and.arrow.up").font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.white).frame(maxWidth: .infinity).padding(17).background(Palette.inkFill, in: RoundedRectangle(cornerRadius: 14))
+                        .foregroundStyle(.white).frame(maxWidth: .infinity).padding(17).background(Palette.accent, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
                 }.accessibilityIdentifier("archive-system-share")
                 Button { open(.files) } label: {
                     Label("存储到文件", systemImage: "folder").frame(maxWidth: .infinity).padding(15)
                 }.accessibilityIdentifier("archive-save-files")
                 Spacer()
-            }.padding(24).background(Palette.background).navigationTitle("本地文件分享").navigationBarTitleDisplayMode(.inline)
+            }.padding(24).background(GlassBackdrop()).navigationTitle("本地文件分享").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { dismiss() } } }
         }
         .sheet(item: $presentation) { kind in
@@ -414,7 +435,7 @@ struct ArchiveWorkflowView: View {
                     Text("校验只针对复制后的字节，不证明音频解码、原始无线覆盖或文字准确。没有预设 NAS 地址，没有读取官方凭证。")
                         .font(.footnote).foregroundStyle(Palette.green)
                 }.padding(24)
-            }.background(Palette.background).navigationTitle("归档链路").navigationBarTitleDisplayMode(.inline)
+            }.background(GlassBackdrop()).navigationTitle("归档链路").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { dismiss() } } }
         }
     }
