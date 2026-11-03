@@ -132,6 +132,9 @@ struct Screen<Content: View>: View {
     var headerIcon: String? = nil
     var headerAction: (() -> Void)? = nil
     @ScaledMetric private var titleSize = 32.0
+    private static var bottomInset: CGFloat {
+        if #available(iOS 26.0, *) { return 24 } else { return 110 }
+    }
     @ViewBuilder var content: () -> Content
 
     var body: some View {
@@ -162,9 +165,9 @@ struct Screen<Content: View>: View {
                     }
                     content()
                 }
-                // NavigationStack can extend its scroll area beneath the root's custom tab inset.
-                // Keep the last row reachable above the floating tab bar on iOS 16 and 26.
-                .padding(.horizontal, 20).padding(.top, 12).padding(.bottom, 110)
+                // iOS 26 uses the system tab bar, which insets scroll content itself.
+                // Earlier systems keep room for the custom floating bar.
+                .padding(.horizontal, 20).padding(.top, 12).padding(.bottom, Self.bottomInset)
             }
             .scrollContentBackground(.hidden)
             .background(GlassBackdrop())
