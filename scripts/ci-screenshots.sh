@@ -51,8 +51,14 @@ for mode in light dark; do
   for tab in 0 1 2 3; do
     xcrun simctl terminate "$UDID" "$BUNDLE" 2>/dev/null || true
     xcrun simctl launch "$UDID" "$BUNDLE" --ui-demo --ui-tab "$tab" >/dev/null
-    sleep 6
-    xcrun simctl io "$UDID" screenshot "$OUT/$(printf '%d' "$tab")-${names[$tab]}-$mode.png"
+    sleep 7
+    shot="$OUT/$(printf '%d' "$tab")-${names[$tab]}-$mode.png"
+    # A nearly blank frame (launch screen still showing) compresses to a tiny PNG: wait and retake.
+    for attempt in 1 2 3 4; do
+      xcrun simctl io "$UDID" screenshot "$shot"
+      [ "$(stat -f %z "$shot")" -gt 150000 ] && break
+      echo "retake $shot (attempt $attempt)"; sleep 5
+    done
   done
 done
 xcrun simctl terminate "$UDID" "$BUNDLE" 2>/dev/null || true
