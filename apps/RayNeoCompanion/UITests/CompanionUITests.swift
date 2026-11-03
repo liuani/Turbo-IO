@@ -370,13 +370,13 @@ final class CompanionUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.staticTexts["尚未连接"].waitForExistence(timeout: 10))
         capture("01-device-real")
-        app.buttons["tab-1"].tap()
+        tabButton(1, in: app).tap()
         XCTAssertTrue(app.staticTexts["麦克风未启用 · 没有音频正在传输"].waitForExistence(timeout: 5))
         capture("02-voice-real")
-        app.buttons["tab-2"].tap()
+        tabButton(2, in: app).tap()
         XCTAssertTrue(app.staticTexts["本地录音管理"].waitForExistence(timeout: 5))
         capture("03-archive-real")
-        app.buttons["tab-3"].tap()
+        tabButton(3, in: app).tap()
         XCTAssertTrue(app.staticTexts["待办清单"].waitForExistence(timeout: 5))
         capture("04-tools-real")
         reveal(app.buttons["使用说明"], in: app)
@@ -596,11 +596,18 @@ final class CompanionUITests: XCTestCase {
         attachment.lifetime = .keepAlways
         add(attachment)
     }
+    /// Custom bar (iOS < 26) exposes `tab-N`; the system tab bar (iOS 26+) exposes the titles.
+    private func tabButton(_ index: Int, in app: XCUIApplication) -> XCUIElement {
+        let custom = app.buttons["tab-\(index)"]
+        if custom.exists { return custom }
+        return app.tabBars.buttons[["设备", "会话", "归档", "工具"][index]]
+    }
     private func reveal(_ element: XCUIElement, in app: XCUIApplication) {
         // Form/List rows can be absent from the AX tree until scrolled into view.
         // Disabled controls are still visible; isHittable alone is not visibility.
         for _ in 0..<10 {
-            let bottom = app.buttons["tab-0"].exists ? app.buttons["tab-0"].frame.minY - 12 : app.frame.maxY - 50
+            let bar = tabButton(0, in: app)
+            let bottom = bar.exists ? bar.frame.minY - 12 : app.frame.maxY - 50
             if element.exists, element.frame.width > 0 {
                 if element.frame.minY > 90, element.frame.maxY < bottom { return }
                 if element.frame.minY <= 90 { app.swipeDown(); continue }

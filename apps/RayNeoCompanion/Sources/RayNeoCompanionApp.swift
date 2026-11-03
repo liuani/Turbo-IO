@@ -36,31 +36,7 @@ struct RootView: View {
     @Namespace private var tabSelection
 
     var body: some View {
-        Group {
-            switch store.selectedTab {
-            case 1: ConversationView()
-            case 2: ArchiveView()
-            case 3: ToolsView()
-            default: DeviceView()
-            }
-        }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            if !hideTabBar {
-            HStack(spacing: 2) {
-                tabButton(0, "设备", "eyeglasses")
-                tabButton(1, "会话", "bubble.left")
-                tabButton(2, "归档", "folder")
-                tabButton(3, "工具", "case")
-            }
-            .padding(5)
-            .liquidGlass(in: Capsule())
-            .shadow(color: .black.opacity(0.12), radius: 18, y: 8)
-            .animation(.spring(response: 0.38, dampingFraction: 0.78), value: store.selectedTab)
-            .frame(maxWidth: 440)
-            .padding(.horizontal, 22).padding(.bottom, 6)
-            }
-        }
-        .onPreferenceChange(CompanionTabBarHiddenPreference.self) { hideTabBar = $0 }
+        tabs
         .task {
             while !Task.isCancelled {
                 await store.codexPush.tick()
@@ -92,6 +68,50 @@ struct RootView: View {
         }
     }
 
+    /// iOS 26+: the system TabView, so the tab bar gets the real Liquid Glass behaviour
+    /// (press-and-drag between tabs, morphing selection lens). Earlier iOS: the custom bar.
+    @ViewBuilder
+    private var tabs: some View {
+        if #available(iOS 26.0, *) {
+            TabView(selection: $store.selectedTab) {
+                Tab("设备", systemImage: "eyeglasses", value: 0) { DeviceView().hidesSystemTabBarOnRequest() }
+                Tab("会话", systemImage: "bubble.left", value: 1) { ConversationView().hidesSystemTabBarOnRequest() }
+                Tab("归档", systemImage: "folder", value: 2) { ArchiveView().hidesSystemTabBarOnRequest() }
+                Tab("工具", systemImage: "case", value: 3) { ToolsView().hidesSystemTabBarOnRequest() }
+            }
+        } else {
+            legacyTabs
+        }
+    }
+
+    private var legacyTabs: some View {
+        Group {
+            switch store.selectedTab {
+            case 1: ConversationView()
+            case 2: ArchiveView()
+            case 3: ToolsView()
+            default: DeviceView()
+            }
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if !hideTabBar {
+            HStack(spacing: 2) {
+                tabButton(0, "设备", "eyeglasses")
+                tabButton(1, "会话", "bubble.left")
+                tabButton(2, "归档", "folder")
+                tabButton(3, "工具", "case")
+            }
+            .padding(5)
+            .liquidGlass(in: Capsule())
+            .shadow(color: .black.opacity(0.12), radius: 18, y: 8)
+            .animation(.spring(response: 0.38, dampingFraction: 0.78), value: store.selectedTab)
+            .frame(maxWidth: 440)
+            .padding(.horizontal, 22).padding(.bottom, 6)
+            }
+        }
+        .onPreferenceChange(CompanionTabBarHiddenPreference.self) { hideTabBar = $0 }
+    }
+
     private func tabButton(_ index: Int, _ title: String, _ icon: String) -> some View {
         Button { store.selectedTab = index } label: {
             VStack(spacing: 3) {
@@ -117,4 +137,23 @@ struct RootView: View {
 struct CompanionTabBarHiddenPreference: PreferenceKey {
     static var defaultValue = false
     static func reduce(value: inout Bool, nextValue: () -> Bool) { value = value || nextValue() }
+}
+
+/// Hides the system tab bar while a pushed screen sets `CompanionTabBarHiddenPreference`,
+/// matching what the custom bar did on earlier iOS versions.
+@available(iOS 26.0, *)
+private struct SystemTabBarHiding: ViewModifier {
+    @State private var hidden = false
+
+    func body(content: Content) -> some View {
+        content
+            .onPreferenceChange(CompanionTabBarHiddenPreference.self) { hidden = $0 }
+            .toolbarVisibility(hidden ? .hidden : .visible, for: .tabBar)
+            .animation(.default, value: hidden)
+    }
+}
+
+@available(iOS 26.0, *)
+private extension View {
+    func hidesSystemTabBarOnRequest() -> some View { modifier(SystemTabBarHiding()) }
 }
