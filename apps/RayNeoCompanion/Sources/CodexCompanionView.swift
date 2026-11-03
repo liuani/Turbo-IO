@@ -84,7 +84,7 @@ struct CodexCompanionView: View {
                         Text(task.status).font(.headline)
                         Text(task.answer.isEmpty ? "还没有收到 Codex 输出" : task.answer).textSelection(.enabled).privacySensitive()
                     }.padding(20).frame(maxWidth: .infinity, alignment: .leading).foregroundStyle(Palette.mint)
-                        .background(Palette.inkFill, in: RoundedRectangle(cornerRadius: 20)).accessibilityIdentifier("codex-output")
+                        .background(Palette.heroGradient, in: RoundedRectangle(cornerRadius: 24, style: .continuous)).accessibilityIdentifier("codex-output")
                     ForEach(task.pending) { request in
                         Card {
                             Label(request.kind == "question" ? "Codex 需要你的回答" : "Codex 请求单次批准", systemImage: "hand.raised").font(.headline)
@@ -119,7 +119,7 @@ struct CodexCompanionView: View {
                 Text("页面前台每两秒刷新。关闭页面不停止电脑任务；本版不承诺 iOS 后台实时通知。语音可问“Codex 进度如何”。")
                     .font(.caption).foregroundStyle(Palette.muted)
             }.padding(22)
-        }.background(Palette.background).navigationTitle("Codex 控制台").navigationBarTitleDisplayMode(.inline)
+        }.background(GlassBackdrop()).navigationTitle("Codex 控制台").navigationBarTitleDisplayMode(.inline)
             .toolbar(.visible, for: .navigationBar).preference(key: CompanionTabBarHiddenPreference.self, value: true)
             .onAppear { endpoint = codex.endpoint; voiceTools = codex.voiceToolsEnabled }
             .task {
