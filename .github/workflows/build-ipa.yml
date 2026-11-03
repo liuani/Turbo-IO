@@ -1,0 +1,177 @@
+name: Build unsigned IPA (standalone iOS client)
+
+# 只编译独立 iOS 客户端（RayNeoCompanionDevice），不涉及官方 App 扩展，不下载任何官方 IPA。
+# 不使用任何密钥、证书或个人信息；产物是未签名 IPA，需自行用 SideStore / LiveContainer 签名。
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "要编译的分支 / tag / commit（留空 = 运行 workflow 时选中的分支）"
+        required: false
+        default: ""
+      screenshots:
+        description: "额外在 iOS 模拟器里运行界面并截图（第二阶段用）"
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-ipa-${{ github.event.inputs.ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    env:
+      SCHEME: RayNeoCompanionDevice
+      SPEC: apps/RayNeoCompanion/project-device.yml
+      PROJECT: apps/RayNeoCompanion/RayNeoCompanion.xcodeproj
+      ARCHIVE: ${{ github.workspace }}/out/TurboIO.xcarchive
+      OUT: ${{ github.workspace }}/out
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+          lfs: false
+
+      - name: Select newest Xcode (26 or later)
+        run: |
+          set -euo pipefail
+          ls -d /Applications/Xcode*.app || true
+          XCODE=$(ls -d /Applications/Xcode*.app | grep -v -i beta | sort -V | tail -1)
+          [ -n "$XCODE" ] || XCODE=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          echo "Selecting $XCODE"
+          sudo xcode-select -s "$XCODE/Contents/Developer"
+          xcodebuild -version
+          xcrun --sdk iphoneos --show-sdk-version
+          MAJOR=$(xcodebuild -version | head -1 | awk '{print $2}' | cut -d. -f1)
+          if [ "$MAJOR" -lt 26 ]; then
+            echo "::error::Runner 上最新 Xcode 为 $MAJOR，低于 26，无法用 iOS 26 SDK 编译。"; exit 1
+          fi
+
+      - name: Install XcodeGen
+        run: |
+          brew install xcodegen
+          xcodegen --version
+
+      - name: Check vendored device dependencies
+        run: |
+          set -euo pipefail
+          for p in core-probe/Frameworks/{RayneoNet,CocoaAsyncSocket,OpenSSL,RayneoLog,SwiftProtobuf,CocoaLumberjack,SSZipArchive}.framework \
+                   core-probe/RecoveredInterface/RayneoNet.swift core-probe/Vendor/opus-ios/libopus.a \
+                   core-probe/Vendor/opus-1.5.2/include/opus.h core-probe/Vendor/py-webrtcvad-2.0.10/cbits/webrtc/common_audio; do
+            [ -e "$p" ] || { echo "::error::缺少依赖 $p"; exit 1; }
+          done
+          # 与 scripts/start.mjs --device 相同：只生成声明用 swiftmodule，不链接占位实现
+          SDK=$(xcrun --sdk iphoneos --show-sdk-path)
+          MOD=core-probe/RecoveredInterface/build/RayneoNet.swiftmodule
+          mkdir -p "$MOD"
+          xcrun swiftc -emit-module -parse-as-library -module-name RayneoNet \
+            -target arm64-apple-ios16.0 -sdk "$SDK" \
+            core-probe/RecoveredInterface/RayneoNet.swift \
+            -emit-module-path "$MOD/arm64-apple-ios.swiftmodule"
+
+      - name: Generate Xcode project
+        run: xcodegen generate --spec "$SPEC"
+
+      - name: Archive (Release, unsigned)
+        run: |
+          set -euo pipefail
+          mkdir -p "$OUT"
+          xcodebuild archive \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$ARCHIVE" \
+            -derivedDataPath "$OUT/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            DEVELOPMENT_TEAM="" \
+            > "$OUT/xcodebuild.log" 2>&1 || {
+              echo "::error::xcodebuild archive 失败，最后 80 行错误："
+              grep -E "error:|fatal" "$OUT/xcodebuild.log" | tail -80 || tail -80 "$OUT/xcodebuild.log"
+              exit 1
+            }
+
+      - name: Package Turbo-IO-unsigned.ipa
+        run: |
+          set -euo pipefail
+          APP=$(find "$ARCHIVE/Products/Applications" -maxdepth 1 -name "*.app" | head -1)
+          [ -d "$APP" ] || { echo "::error::archive 里没有 .app"; exit 1; }
+          rm -rf "$OUT/ipa" && mkdir -p "$OUT/ipa/Payload"
+          cp -R "$APP" "$OUT/ipa/Payload/"
+          (cd "$OUT/ipa" && zip -qry ../Turbo-IO-unsigned.ipa Payload)
+          ls -l "$OUT/Turbo-IO-unsigned.ipa"
+
+      - name: Build report (Info.plist / extensions / entitlements)
+        run: |
+          set -euo pipefail
+          APP=$(find "$OUT/ipa/Payload" -maxdepth 1 -name "*.app" | head -1)
+          R="$OUT/build-report.txt"
+          {
+            echo "== Toolchain"; xcodebuild -version; echo "iOS SDK $(xcrun --sdk iphoneos --show-sdk-version)"
+            echo "== Commit"; git rev-parse HEAD
+            echo "== IPA size (bytes)"; stat -f %z "$OUT/Turbo-IO-unsigned.ipa"
+            echo "== Bundle ID"; /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist"
+            echo "== Version"; /usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Info.plist"; /usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP/Info.plist"
+            echo "== MinimumOSVersion"; /usr/libexec/PlistBuddy -c 'Print :MinimumOSVersion' "$APP/Info.plist"
+            echo "== DTSDKName"; /usr/libexec/PlistBuddy -c 'Print :DTSDKName' "$APP/Info.plist" || true
+            echo "== UIBackgroundModes"; /usr/libexec/PlistBuddy -c 'Print :UIBackgroundModes' "$APP/Info.plist" || echo "(none)"
+            echo "== UISupportedExternalAccessoryProtocols"; /usr/libexec/PlistBuddy -c 'Print :UISupportedExternalAccessoryProtocols' "$APP/Info.plist" || echo "(none)"
+            echo "== UIDesignRequiresCompatibility"; /usr/libexec/PlistBuddy -c 'Print :UIDesignRequiresCompatibility' "$APP/Info.plist" 2>/dev/null || echo "(not set)"
+            echo "== Full Info.plist"; plutil -p "$APP/Info.plist"
+            echo "== App extensions (PlugIns / Extensions)"; ls -1 "$APP/PlugIns" 2>/dev/null || echo "(no PlugIns dir)"; ls -1 "$APP/Extensions" 2>/dev/null || echo "(no Extensions dir)"
+            echo "== Watch / AppClips"; ls -1 "$APP/Watch" "$APP/AppClips" 2>/dev/null || echo "(none)"
+            echo "== Embedded frameworks"; ls -1 "$APP/Frameworks" 2>/dev/null || true
+            echo "== Entitlements in source (*.entitlements)"; find apps core-probe -name "*.entitlements" || true
+            echo "== Entitlements embedded in binary (unsigned build: expected empty)"; codesign -d --entitlements :- "$APP" 2>&1 || true
+            echo "== Archived xcent"; find "$OUT/DerivedData" -name "*.xcent" -print -exec plutil -p {} \; 2>/dev/null || true
+          } > "$R" 2>&1
+          cat "$R"
+
+      - name: Simulator screenshots (optional)
+        if: ${{ github.event.inputs.screenshots == 'true' }}
+        run: |
+          set -euo pipefail
+          if [ -x scripts/ci-screenshots.sh ]; then
+            bash scripts/ci-screenshots.sh "$OUT/screenshots"
+          else
+            echo "::warning::scripts/ci-screenshots.sh 不存在，跳过截图"
+          fi
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Turbo-IO-unsigned-ipa
+          path: |
+            out/Turbo-IO-unsigned.ipa
+            out/build-report.txt
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload screenshots
+        if: ${{ github.event.inputs.screenshots == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Turbo-IO-screenshots
+          path: out/screenshots
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: out/xcodebuild.log
+          if-no-files-found: ignore
+          retention-days: 7
