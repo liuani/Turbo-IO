@@ -90,7 +90,7 @@ struct GlassesPrompterControls: View {
             }
             Text("只发当前分段（最多 12,000 字），不发整本书。收到收稿回应后才允许开始；眼镜上报原始进度，不假装等于手机分页。未启用智能跟读。").font(.caption2).foregroundStyle(Palette.muted)
             if let error = features.error { Text(error).font(.caption).foregroundStyle(Palette.amber) }
-        }.padding(16).background(.white,in:RoundedRectangle(cornerRadius:16))
+        }.padding(16).background(Palette.card, in: RoundedRectangle(cornerRadius:16))
         .confirmationDialog("发送当前文字到眼镜？会暂停 AI 待命；文字只经本地连接传输。",isPresented:$confirm) {
             Button("准备当前稿件") { features.prepareTeleprompter(text,speed:Int(speed)) }
         }.onAppear { features.prepare() }

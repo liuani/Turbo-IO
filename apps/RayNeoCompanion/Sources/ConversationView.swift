@@ -24,7 +24,7 @@ struct LegacyConversationView: View {
                 }.frame(height: 65).padding(.top, 21).accessibilityLabel("静态语音图示，未采集声音")
                 Text("麦克风未启用 · 没有音频正在传输").font(.system(size: 10)).foregroundStyle(Palette.mint.opacity(0.55))
             }.padding(.vertical, 35).frame(maxWidth: .infinity)
-                .background(LinearGradient(colors: [Palette.ink, Color(red: 0.10, green: 0.24, blue: 0.16)], startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 22))
+                .background(Palette.heroGradient, in: RoundedRectangle(cornerRadius: 22))
 
             Card {
                 Button { showConfiguration = true } label: {
@@ -47,7 +47,7 @@ struct LegacyConversationView: View {
             Button { showSimulation = true } label: {
                 Label("本地流程演示", systemImage: "play")
                     .font(.system(size: 15, weight: .semibold)).foregroundStyle(Palette.ink).frame(maxWidth: .infinity).padding(16)
-                    .background(.white, in: RoundedRectangle(cornerRadius: 14)).overlay(RoundedRectangle(cornerRadius: 14).stroke(Palette.green, lineWidth: 1))
+                    .background(Palette.card, in: RoundedRectangle(cornerRadius: 14)).overlay(RoundedRectangle(cornerRadius: 14).stroke(Palette.green, lineWidth: 1))
             }.accessibilityIdentifier("open-session-lab")
         }
         .sheet(isPresented: $showConfiguration) { ModelConfigurationView() }
@@ -109,7 +109,7 @@ struct ModelConfigurationView: View {
                     PrimaryButton(title: "保存配置", icon: "square.and.arrow.down") { save() }.accessibilityIdentifier("save-model")
                     Label("未使用官方账号或云端凭证", systemImage: "exclamationmark.triangle")
                         .font(.system(size: 12)).foregroundStyle(Palette.amber).padding(15)
-                        .frame(maxWidth: .infinity, alignment: .leading).background(Color(red: 0.99, green: 0.95, blue: 0.85), in: RoundedRectangle(cornerRadius: 14))
+                        .frame(maxWidth: .infinity, alignment: .leading).background(Palette.warningFill, in: RoundedRectangle(cornerRadius: 14))
                     Text("密钥仅当前设备、解锁后可用，不写入日志或配置文件。识别与语音选项只是策略草稿，不会运行模型或更改眼镜设置。")
                         .font(.system(size: 11)).foregroundStyle(Palette.muted).lineSpacing(4)
                     if hasKey { Button("移除此服务在本机保存的密钥", role: .destructive) { confirmRemoval = true }.font(.footnote) }

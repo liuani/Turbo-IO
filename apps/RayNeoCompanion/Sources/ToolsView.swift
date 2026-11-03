@@ -69,7 +69,7 @@ struct ToolsView: View {
             Text(footnote).font(.system(size: 10)).opacity(0.7)
         }.padding(20).frame(maxWidth: .infinity, alignment: .leading).frame(minHeight: 160)
             .foregroundStyle(green ? Palette.mint : Palette.ink)
-            .background(green ? Palette.ink : Palette.mint.opacity(0.5), in: RoundedRectangle(cornerRadius: 24))
+            .background(green ? Palette.inkFill : Palette.mint.opacity(0.5), in: RoundedRectangle(cornerRadius: 24))
     }
 }
 
@@ -166,9 +166,9 @@ struct TodoView: View {
                         store.addTodo(title); title = ""
                         inputFocused = false
                         showCompleted = false
-                    } label: { Image(systemName: "plus").font(.system(size: 17, weight: .medium)).foregroundStyle(.white).frame(width: 36, height: 36).background(Palette.ink, in: Circle()) }
+                    } label: { Image(systemName: "plus").font(.system(size: 17, weight: .medium)).foregroundStyle(.white).frame(width: 36, height: 36).background(Palette.inkFill, in: Circle()) }
                         .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty).accessibilityLabel("保存到本机")
-                }.padding(13).background(.white, in: RoundedRectangle(cornerRadius: 14))
+                }.padding(13).background(Palette.card, in: RoundedRectangle(cornerRadius: 14))
                     .overlay(RoundedRectangle(cornerRadius: 14).stroke(Palette.line, lineWidth: 0.75))
                 if visibleTodos.isEmpty {
                     Card { EmptyState(icon: "checkmark.circle", title: showCompleted ? "还没有已完成待办" : "还没有进行中的待办", detail: "从一件可以完成的小事开始。\n这里不会显示或修改官方 App 的待办。") }
@@ -205,7 +205,7 @@ struct TodoView: View {
                 ShareLink(item: markdown) {
                     Label("导出待办清单（本机）", systemImage: "arrow.down.to.line")
                         .font(.system(size: 15, weight: .semibold)).foregroundStyle(.white).frame(maxWidth: .infinity).padding(17)
-                        .background(Palette.ink, in: RoundedRectangle(cornerRadius: 14))
+                        .background(Palette.inkFill, in: RoundedRectangle(cornerRadius: 14))
                 }.disabled(store.todos.isEmpty)
                 Text("仅分享本机 Markdown 文本，不会推送到眼镜。")
                     .font(.system(size: 11)).foregroundStyle(Palette.muted).frame(maxWidth: .infinity)
@@ -288,13 +288,13 @@ struct PrompterView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading).padding(24)
                         }.frame(height: 210)
                         Text(pages.isEmpty ? "无内容" : "手机页 \(page + 1) / \(pages.count)").font(.system(size: 11)).foregroundStyle(Palette.mint.opacity(0.6)).padding(.bottom, 16)
-                    }.background(Palette.ink, in: RoundedRectangle(cornerRadius: 20))
+                    }.background(Palette.inkFill, in: RoundedRectangle(cornerRadius: 20))
                     HStack { Text("字号"); Spacer(); Text("\(Int(fontSize))").monospacedDigit() }.font(.subheadline)
                     HStack { Text("A").font(.caption); Slider(value: $fontSize, in: 16...40, step: 1); Text("A").font(.title3) }
                     HStack {
                         Button { page = max(0, page - 1) } label: { Label("上一页", systemImage: "chevron.left").frame(maxWidth: .infinity) }.disabled(page == 0)
                         Button { page = min(pages.count - 1, page + 1) } label: { Label("下一页", systemImage: "chevron.right").frame(maxWidth: .infinity) }.disabled(page + 1 >= pages.count)
-                    }.font(.system(size: 13)).padding(13).background(.white, in: RoundedRectangle(cornerRadius: 12))
+                    }.font(.system(size: 13)).padding(13).background(Palette.card, in: RoundedRectangle(cornerRadius: 12))
                     Text("每页按 140 个字符切分，仅便于手机阅读，不是眼镜分页规则。")
                         .font(.system(size: 10)).foregroundStyle(Palette.muted)
                 }
@@ -303,7 +303,7 @@ struct PrompterView: View {
                         Label(saved ? "已保存" : "保存草稿", systemImage: saved ? "checkmark" : "square.and.arrow.down").frame(maxWidth: .infinity)
                     }.accessibilityIdentifier("prompter-save")
                     ShareLink(item: text) { Label("分享稿件", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity) }.disabled(text.isEmpty)
-                }.font(.system(size: 13, weight: .medium)).padding(14).background(.white, in: RoundedRectangle(cornerRadius: 13))
+                }.font(.system(size: 13, weight: .medium)).padding(14).background(Palette.card, in: RoundedRectangle(cornerRadius: 13))
                     .overlay(RoundedRectangle(cornerRadius: 13).stroke(Palette.green, lineWidth: 0.75))
                 GlassesPrompterControls(text:text)
                 notice("镜片排版与旋钮操作需实机验证")

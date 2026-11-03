@@ -121,7 +121,7 @@ struct UniformReadingText: UIViewRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(self) }
     func makeUIView(context: Context) -> UITextView {
         let view = UITextView(); view.isEditable = false; view.isSelectable = false
-        view.backgroundColor = UIColor(Palette.ink); view.textColor = UIColor(Palette.mint)
+        view.backgroundColor = UIColor(Palette.inkFill); view.textColor = UIColor(Palette.mint)
         view.textContainerInset = UIEdgeInsets(top: 35, left: 20, bottom: 80, right: 20)
         view.delegate = context.coordinator; context.coordinator.view = view
         return view

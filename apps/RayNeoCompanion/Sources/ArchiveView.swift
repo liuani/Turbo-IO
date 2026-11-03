@@ -22,7 +22,7 @@ struct ArchiveView: View {
                     Button { filter = value } label: {
                         Text(value).font(.system(size: 13, weight: .medium)).frame(maxWidth: .infinity).padding(.vertical, 11)
                             .foregroundStyle(filter == value ? .white : Palette.ink)
-                            .background(filter == value ? Palette.ink : .clear, in: Capsule())
+                            .background(filter == value ? Palette.inkFill : .clear, in: Capsule())
                     }
                 }
             }.padding(3).background(Palette.line.opacity(0.35), in: Capsule())
@@ -130,7 +130,7 @@ struct ArchiveDetailView: View {
                     Label("本机校验归档", systemImage: "checkmark.shield").font(.caption).foregroundStyle(Palette.mint)
                     Text(recording.title).font(.title3.weight(.semibold)).foregroundStyle(.white)
                     Text("没有执行音频解码、识别或远端上传").font(.system(size: 11)).foregroundStyle(Palette.mint.opacity(0.8))
-                }.padding(20).frame(maxWidth: .infinity, alignment: .leading).background(Palette.ink, in: RoundedRectangle(cornerRadius: 20))
+                }.padding(20).frame(maxWidth: .infinity, alignment: .leading).background(Palette.inkFill, in: RoundedRectangle(cornerRadius: 20))
                 Picker("归档详情", selection: $mode) {
                     Text("归档证据").tag("归档证据"); Text("文字与修订").tag("文字与修订")
                 }.pickerStyle(.segmented)
@@ -142,7 +142,7 @@ struct ArchiveDetailView: View {
                         Text("刷新或收起错误不会清除这条异常；完整复核通过后才恢复。历史校验记录仍保留。")
                             .font(.caption2)
                     }.foregroundStyle(Palette.amber).padding(15).frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(red: 0.99, green: 0.95, blue: 0.85), in: RoundedRectangle(cornerRadius: 14))
+                        .background(Palette.warningFill, in: RoundedRectangle(cornerRadius: 14))
                         .accessibilityIdentifier("archive-persistent-integrity-issue")
                 }
                 if mode == "归档证据" { evidenceContent } else { transcriptContent }
@@ -264,7 +264,7 @@ struct ArchiveFeedbackView: View {
                 Text(error).font(.caption).fixedSize(horizontal: false, vertical: true)
                 Button("收起错误说明") { archive.errorMessage = nil }.font(.caption)
             }.foregroundStyle(Palette.amber).padding(15).frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(red: 0.99, green: 0.95, blue: 0.85), in: RoundedRectangle(cornerRadius: 14)).accessibilityIdentifier("archive-error")
+                .background(Palette.warningFill, in: RoundedRectangle(cornerRadius: 14)).accessibilityIdentifier("archive-error")
         } else if let message = archive.statusMessage {
             Text(message).font(.caption).foregroundStyle(Palette.green).padding(13).frame(maxWidth: .infinity, alignment: .leading)
                 .background(Palette.mint.opacity(0.18), in: RoundedRectangle(cornerRadius: 14)).accessibilityIdentifier("archive-status")
@@ -331,7 +331,7 @@ struct ArchiveShareView: View {
                     .font(.caption).foregroundStyle(Palette.amber)
                 Button { open(.share) } label: {
                     Label("打开系统分享", systemImage: "square.and.arrow.up").font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.white).frame(maxWidth: .infinity).padding(17).background(Palette.ink, in: RoundedRectangle(cornerRadius: 14))
+                        .foregroundStyle(.white).frame(maxWidth: .infinity).padding(17).background(Palette.inkFill, in: RoundedRectangle(cornerRadius: 14))
                 }.accessibilityIdentifier("archive-system-share")
                 Button { open(.files) } label: {
                     Label("存储到文件", systemImage: "folder").frame(maxWidth: .infinity).padding(15)

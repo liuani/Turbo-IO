@@ -84,7 +84,7 @@ struct CodexCompanionView: View {
                         Text(task.status).font(.headline)
                         Text(task.answer.isEmpty ? "还没有收到 Codex 输出" : task.answer).textSelection(.enabled).privacySensitive()
                     }.padding(20).frame(maxWidth: .infinity, alignment: .leading).foregroundStyle(Palette.mint)
-                        .background(Palette.ink, in: RoundedRectangle(cornerRadius: 20)).accessibilityIdentifier("codex-output")
+                        .background(Palette.inkFill, in: RoundedRectangle(cornerRadius: 20)).accessibilityIdentifier("codex-output")
                     ForEach(task.pending) { request in
                         Card {
                             Label(request.kind == "question" ? "Codex 需要你的回答" : "Codex 请求单次批准", systemImage: "hand.raised").font(.headline)

@@ -27,7 +27,7 @@ struct ConversationView: View {
                     .font(.system(size: 16)).foregroundStyle(Palette.mint).lineSpacing(6).privacySensitive()
                 if runtime.modelComplete { Text("模型输出已完成 · 不等于镜片渲染完成").font(.caption2).foregroundStyle(Palette.mint.opacity(0.6)) }
             }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
-                .background(Palette.ink, in: RoundedRectangle(cornerRadius: 22))
+                .background(Palette.inkFill, in: RoundedRectangle(cornerRadius: 22))
                 .accessibilityIdentifier("live-voice-content")
             if !runtime.enabled {
                 Text("麦克风未启用 · 没有音频正在传输").font(.caption).foregroundStyle(Palette.muted)

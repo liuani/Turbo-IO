@@ -21,7 +21,7 @@ struct DeviceView: View {
                 Text("眼镜轮廓示意 · 非设备实时状态").font(.system(size: 9)).foregroundStyle(Palette.mint.opacity(0.5))
             }
             .padding(22).foregroundStyle(.white)
-            .background(LinearGradient(colors: [Palette.ink, Color(red: 0.10, green: 0.24, blue: 0.16)], startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 22))
+            .background(Palette.heroGradient, in: RoundedRectangle(cornerRadius: 22))
 
             if runtime.supportsDevice {
                 PrimaryButton(title: "发现配对中的眼镜", icon: "antenna.radiowaves.left.and.right", enabled: !runtime.enabled) { runtime.discover() }
@@ -65,7 +65,7 @@ struct DeviceView: View {
             }
             Spacer(minLength: 0)
         }.padding(14).frame(maxWidth: .infinity, minHeight: 74, alignment: .leading)
-            .background(.white, in: RoundedRectangle(cornerRadius: 17))
+            .background(Palette.card, in: RoundedRectangle(cornerRadius: 17))
             .overlay(RoundedRectangle(cornerRadius: 17).stroke(Palette.line.opacity(0.6), lineWidth: 0.75))
     }
 }

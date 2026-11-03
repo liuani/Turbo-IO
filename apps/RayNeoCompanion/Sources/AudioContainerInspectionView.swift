@@ -18,7 +18,7 @@ struct AudioContainerInspectionView: View {
                     Text("容器通过，不等于声音可用。").font(.title3.weight(.semibold)).foregroundStyle(.white)
                     Text("只检查一个 Ogg / Opus 声明子集，不播放、不解码、不运行语音识别。")
                         .font(.caption).foregroundStyle(Palette.mint.opacity(0.8)).fixedSize(horizontal: false, vertical: true)
-                }.padding(20).frame(maxWidth: .infinity, alignment: .leading).background(Palette.ink, in: RoundedRectangle(cornerRadius: 20))
+                }.padding(20).frame(maxWidth: .infinity, alignment: .leading).background(Palette.inkFill, in: RoundedRectangle(cornerRadius: 20))
                 if let recording {
                     Card {
                         Text(recording.title).font(.subheadline.weight(.medium)).foregroundStyle(Palette.ink)
@@ -35,7 +35,7 @@ struct AudioContainerInspectionView: View {
 
                 if let message = inspection.message, inspection.identity?.recordingID == recordingID {
                     Text(message).font(.caption).foregroundStyle(Palette.amber).padding(14)
-                        .frame(maxWidth: .infinity, alignment: .leading).background(Color(red: 0.99, green: 0.95, blue: 0.85), in: RoundedRectangle(cornerRadius: 14))
+                        .frame(maxWidth: .infinity, alignment: .leading).background(Palette.warningFill, in: RoundedRectangle(cornerRadius: 14))
                         .accessibilityIdentifier("container-check-message")
                 }
                 if let result = ownResult { resultView(result) }

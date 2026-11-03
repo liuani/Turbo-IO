@@ -21,8 +21,7 @@ struct RayNeoCompanionApp: App {
                 .environmentObject(store.headControlTest)
                 .environmentObject(store.automaticWeather)
                 .environmentObject(store.qweather)
-                .tint(Palette.green)
-                .preferredColorScheme(.light)
+                .tint(Palette.accent)
         }
     }
 }
@@ -53,7 +52,7 @@ struct RootView: View {
                 tabButton(3, "工具", "case")
             }
             .padding(.horizontal, 16).padding(.top, 9).padding(.bottom, 2)
-            .background(.white)
+            .background(Palette.card)
             .overlay(alignment: .top) { Rectangle().fill(Palette.line.opacity(0.45)).frame(height: 0.5) }
             }
         }
@@ -97,7 +96,7 @@ struct RootView: View {
             }
             .foregroundStyle(store.selectedTab == index ? Color.white : Palette.muted)
             .frame(width: 70, height: 54)
-            .background(store.selectedTab == index ? Palette.ink : .clear, in: RoundedRectangle(cornerRadius: 16))
+            .background(store.selectedTab == index ? Palette.inkFill : .clear, in: RoundedRectangle(cornerRadius: 16))
             .frame(maxWidth: .infinity)
         }.accessibilityIdentifier("tab-\(index)").accessibilityLabel(title)
             .accessibilityAddTraits(store.selectedTab == index ? .isSelected : [])

@@ -105,7 +105,7 @@ struct SessionSimulationView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     Label("纯逻辑模拟 · 不采音、不联网、不操作眼镜", systemImage: "sparkles")
                         .font(.system(size: 12, weight: .medium)).foregroundStyle(Palette.amber).padding(14)
-                        .frame(maxWidth: .infinity, alignment: .leading).background(Color(red: 0.98, green: 0.92, blue: 0.77), in: RoundedRectangle(cornerRadius: 14))
+                        .frame(maxWidth: .infinity, alignment: .leading).background(Palette.warningFill, in: RoundedRectangle(cornerRadius: 14))
                     Card {
                         HStack { Text("语音会话流程").font(.system(size: 16, weight: .semibold)).foregroundStyle(Palette.ink); Spacer(); Badge(text: phaseName, active: true) }
                         VStack(spacing: 0) {
