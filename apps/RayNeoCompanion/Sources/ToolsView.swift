@@ -282,7 +282,7 @@ struct PrompterView: View {
                         ZStack(alignment: .topLeading) {
                             if text.isEmpty { Text("写下你想说的话……").foregroundStyle(Palette.muted).padding(.top, 8).padding(.leading, 5) }
                             TextEditor(text: $text).scrollContentBackground(.hidden).frame(minHeight: 260).accessibilityIdentifier("prompter-input")
-                        }.font(.system(size: 16)).padding(10).background(Palette.background, in: RoundedRectangle(cornerRadius: 14))
+                        }.font(.system(size: 16)).padding(10).background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                     }
                 } else {
                     Text("手机排版预览").font(.system(size: 14, weight: .medium)).foregroundStyle(Palette.ink)
@@ -293,13 +293,15 @@ struct PrompterView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading).padding(24)
                         }.frame(height: 210)
                         Text(pages.isEmpty ? "无内容" : "手机页 \(page + 1) / \(pages.count)").font(.system(size: 11)).foregroundStyle(Palette.mint.opacity(0.6)).padding(.bottom, 16)
-                    }.background(Palette.inkFill, in: RoundedRectangle(cornerRadius: 20))
+                    }.background(Palette.heroGradient, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).stroke(Color.white.opacity(0.14), lineWidth: 1))
                     HStack { Text("字号"); Spacer(); Text("\(Int(fontSize))").monospacedDigit() }.font(.subheadline)
                     HStack { Text("A").font(.caption); Slider(value: $fontSize, in: 16...40, step: 1); Text("A").font(.title3) }
                     HStack {
                         Button { page = max(0, page - 1) } label: { Label("上一页", systemImage: "chevron.left").frame(maxWidth: .infinity) }.disabled(page == 0)
                         Button { page = min(pages.count - 1, page + 1) } label: { Label("下一页", systemImage: "chevron.right").frame(maxWidth: .infinity) }.disabled(page + 1 >= pages.count)
-                    }.font(.system(size: 13)).padding(13).background(Palette.card, in: RoundedRectangle(cornerRadius: 12))
+                    }.font(.system(size: 14, weight: .semibold)).padding(6)
+                    .liquidGlass(in: Capsule())
                     Text("每页按 140 个字符切分，仅便于手机阅读，不是眼镜分页规则。")
                         .font(.system(size: 10)).foregroundStyle(Palette.muted)
                 }
@@ -308,12 +310,12 @@ struct PrompterView: View {
                         Label(saved ? "已保存" : "保存草稿", systemImage: saved ? "checkmark" : "square.and.arrow.down").frame(maxWidth: .infinity)
                     }.accessibilityIdentifier("prompter-save")
                     ShareLink(item: text) { Label("分享稿件", systemImage: "square.and.arrow.up").frame(maxWidth: .infinity) }.disabled(text.isEmpty)
-                }.font(.system(size: 13, weight: .medium)).padding(14).background(Palette.card, in: RoundedRectangle(cornerRadius: 13))
-                    .overlay(RoundedRectangle(cornerRadius: 13).stroke(Palette.green, lineWidth: 0.75))
+                }.font(.system(size: 14, weight: .semibold)).padding(.vertical, 14).padding(.horizontal, 10)
+                    .liquidGlass(in: Capsule(), interactive: true)
                 GlassesPrompterControls(text:text)
                 notice("镜片排版与旋钮操作需实机验证")
             }.padding(24)
-        }.background(Palette.background).navigationTitle("提词器").navigationBarTitleDisplayMode(.inline).toolbar(.visible, for: .navigationBar)
+        }.background(GlassBackdrop()).navigationTitle("提词器").navigationBarTitleDisplayMode(.inline).toolbar(.visible, for: .navigationBar)
             .preference(key: CompanionTabBarHiddenPreference.self, value: true)
             .onAppear { text = store.prompterText }.onChange(of: text) { _ in saved = false; page = 0 }
     }
