@@ -297,7 +297,7 @@ struct AlwaysOnLocalProbeView: View {
                     ForEach(Array(probe.events.enumerated()), id: \.offset) { _, event in Text(event).font(.system(.caption, design: .monospaced)) }
                 }
             }.padding(22)
-        }.background(Palette.background).navigationTitle("全天智记").navigationBarTitleDisplayMode(.inline)
+        }.background(GlassBackdrop()).navigationTitle("全天智记").navigationBarTitleDisplayMode(.inline)
             .toolbar(.visible, for: .navigationBar).preference(key: CompanionTabBarHiddenPreference.self, value: true)
             .confirmationDialog("确认已查看眼镜，全天智记已关闭？这会记录人工确认，不标记为协议验证通过。", isPresented: $confirmPhysicalStop) {
                 Button("确认眼镜已关闭") { probe.confirmPhysicalStop() }
