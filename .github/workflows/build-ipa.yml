@@ -17,7 +17,7 @@ on:
         default: false
 
 permissions:
-  contents: read
+  contents: write   # 仅用于把截图推到 screenshots-* 分支
 
 concurrency:
   group: build-ipa-${{ github.event.inputs.ref || github.ref_name }}
@@ -142,11 +142,30 @@ jobs:
         if: ${{ github.event.inputs.screenshots == 'true' }}
         run: |
           set -euo pipefail
-          if [ -x scripts/ci-screenshots.sh ]; then
+          if [ -f scripts/ci-screenshots.sh ]; then
             bash scripts/ci-screenshots.sh "$OUT/screenshots"
           else
             echo "::warning::scripts/ci-screenshots.sh 不存在，跳过截图"
           fi
+
+      - name: Publish screenshots to a branch (for review without artifact download)
+        if: ${{ github.event.inputs.screenshots == 'true' }}
+        env:
+          REF_NAME: ${{ github.event.inputs.ref || github.ref_name }}
+        run: |
+          set -euo pipefail
+          [ -d "$OUT/screenshots" ] && ls "$OUT/screenshots"/*.png >/dev/null 2>&1 || { echo "no screenshots"; exit 0; }
+          SAFE=$(echo "$REF_NAME" | tr '/' '-')
+          SRC=$(git rev-parse HEAD)
+          TMP=$(mktemp -d)
+          cp "$OUT/screenshots"/*.png "$TMP/"
+          cd "$TMP"
+          git init -q
+          git checkout -q --orphan "screenshots-$SAFE"
+          echo "Screenshots of $REF_NAME @ $SRC (CI only, not source)" > README.md
+          git add .
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -q -m "screenshots of $REF_NAME @ $SRC"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" "HEAD:refs/heads/screenshots-$SAFE"
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
