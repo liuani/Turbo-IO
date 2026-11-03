@@ -178,14 +178,14 @@ struct HeadControlNotificationTestView: View {
                 }
                 Card {
                     Text(test.status).font(.subheadline).accessibilityIdentifier("head-control-test-status")
-                    if let decision = test.lastDecision { Text(decision).font(.caption).foregroundStyle(Palette.green) }
+                    if let decision = test.lastDecision { Text(decision).font(.caption).foregroundStyle(Palette.accentText) }
                     if let error = test.error { Text(error).font(.caption).foregroundStyle(.red) }
                     Text("协议范围：业务 21；下发 type 33，匹配 type 34 回传后删除并发送 type 35 回执。未验证的回传会被忽略。")
                         .font(.caption2).foregroundStyle(Palette.muted)
                 }
             }.padding(22)
         }
-        .background(Palette.background)
+        .background(GlassBackdrop())
         .navigationTitle("头控通知测试")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.visible, for: .navigationBar)
