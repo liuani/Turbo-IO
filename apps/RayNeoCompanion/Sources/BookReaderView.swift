@@ -22,7 +22,7 @@ struct BookShelfView: View {
                     NavigationLink { BookReaderView(book: book) } label: {
                         Card {
                             HStack(spacing: 15) {
-                                Image(systemName: "book.closed").font(.title).foregroundStyle(Palette.green)
+                                Image(systemName: "book.closed").font(.title).foregroundStyle(Palette.accentText)
                                 VStack(alignment: .leading, spacing: 6) {
                                     Text(book.title).font(.headline).foregroundStyle(Palette.ink).lineLimit(2)
                                     Text("\(book.sourceExtension.uppercased()) · \(book.chapters.count) 个阅读分段").font(.caption).foregroundStyle(Palette.muted)
@@ -36,7 +36,7 @@ struct BookShelfView: View {
                 Text("手机匀速预览已接入。眼镜传稿、滚动参数与旋钮进度同步仍需接线和真机验收；不会把手机像素速度当成镜片速度。")
                     .font(.caption).foregroundStyle(Palette.muted)
             }.padding(24)
-        }.background(Palette.background).navigationTitle("书籍提词").navigationBarTitleDisplayMode(.inline)
+        }.background(GlassBackdrop()).navigationTitle("书籍提词").navigationBarTitleDisplayMode(.inline)
             .toolbar(.visible, for: .navigationBar)
             .preference(key: CompanionTabBarHiddenPreference.self, value: true)
             .task { await library.load() }
@@ -93,7 +93,7 @@ struct BookReaderView: View {
             Text("拖动即暂停 · 切章不自动播放 · 离页/锁屏暂停\n速度仅指手机滚动；到本段结尾自动停止。").font(.system(size: 10)).foregroundStyle(Palette.muted)
             Button(savedDraft ? "已复制到提词草稿" : "将当前分段用作提词稿") { confirmDraft = true }.font(.subheadline)
                 .accessibilityIdentifier("book-use-draft")
-        }.padding(.horizontal, 22).padding(.bottom, 18).background(Palette.background)
+        }.padding(.horizontal, 22).padding(.bottom, 18).padding(.top, 10).background(.regularMaterial)
             .navigationTitle(book.title).navigationBarTitleDisplayMode(.inline).toolbar(.visible, for: .navigationBar)
             .preference(key: CompanionTabBarHiddenPreference.self, value: true)
             .onChange(of: chapter) { _ in seek(0); savedDraft = false }
