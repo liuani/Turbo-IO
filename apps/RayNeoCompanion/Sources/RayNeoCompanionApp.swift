@@ -33,6 +33,7 @@ struct RootView: View {
     @State private var incomingBook: URL?
     @State private var confirmBook = false
     @State private var showBooks = false
+    @Namespace private var tabSelection
 
     var body: some View {
         Group {
@@ -45,15 +46,18 @@ struct RootView: View {
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             if !hideTabBar {
-            HStack(spacing: 0) {
+            HStack(spacing: 2) {
                 tabButton(0, "设备", "eyeglasses")
                 tabButton(1, "会话", "bubble.left")
                 tabButton(2, "归档", "folder")
                 tabButton(3, "工具", "case")
             }
-            .padding(.horizontal, 16).padding(.top, 9).padding(.bottom, 2)
-            .background(Palette.card)
-            .overlay(alignment: .top) { Rectangle().fill(Palette.line.opacity(0.45)).frame(height: 0.5) }
+            .padding(5)
+            .liquidGlass(in: Capsule())
+            .shadow(color: .black.opacity(0.12), radius: 18, y: 8)
+            .animation(.spring(response: 0.38, dampingFraction: 0.78), value: store.selectedTab)
+            .frame(maxWidth: 440)
+            .padding(.horizontal, 22).padding(.bottom, 6)
             }
         }
         .onPreferenceChange(CompanionTabBarHiddenPreference.self) { hideTabBar = $0 }
@@ -90,15 +94,22 @@ struct RootView: View {
 
     private func tabButton(_ index: Int, _ title: String, _ icon: String) -> some View {
         Button { store.selectedTab = index } label: {
-            VStack(spacing: 5) {
-                Image(systemName: icon).font(.system(size: 21, weight: .regular))
-                Text(title).font(.system(size: 11, weight: store.selectedTab == index ? .semibold : .regular))
+            VStack(spacing: 3) {
+                Image(systemName: icon).font(.system(size: 20, weight: .medium))
+                    .symbolVariant(store.selectedTab == index ? .fill : .none)
+                Text(title).font(.system(size: 11, weight: store.selectedTab == index ? .semibold : .medium))
             }
-            .foregroundStyle(store.selectedTab == index ? Color.white : Palette.muted)
-            .frame(width: 70, height: 54)
-            .background(store.selectedTab == index ? Palette.inkFill : .clear, in: RoundedRectangle(cornerRadius: 16))
-            .frame(maxWidth: .infinity)
-        }.accessibilityIdentifier("tab-\(index)").accessibilityLabel(title)
+            .foregroundStyle(store.selectedTab == index ? Palette.accentText : Palette.ink.opacity(0.75))
+            .frame(maxWidth: .infinity).frame(height: 54)
+            .background {
+                if store.selectedTab == index {
+                    Capsule().fill(Palette.ink.opacity(0.09))
+                        .matchedGeometryEffect(id: "tab-selection", in: tabSelection)
+                }
+            }
+            .contentShape(Capsule())
+        }.buttonStyle(.plain)
+            .accessibilityIdentifier("tab-\(index)").accessibilityLabel(title)
             .accessibilityAddTraits(store.selectedTab == index ? .isSelected : [])
     }
 }
