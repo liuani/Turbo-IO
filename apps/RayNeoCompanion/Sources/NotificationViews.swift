@@ -152,7 +152,7 @@ struct NotificationTestView: View {
             }
             Section("手机预览 · 不是镜片截图") {
                 VStack(alignment: .leading, spacing: 8) {
-                    Label("Turbo IO", systemImage: "bell.badge").font(.caption).foregroundStyle(Palette.green)
+                    Label("Turbo IO", systemImage: "bell.badge").font(.caption).foregroundStyle(Palette.accentText)
                     Text(title).font(.headline)
                     Text(content).font(.body)
                 }.padding(.vertical, 8).accessibilityIdentifier("notification-test-preview")
